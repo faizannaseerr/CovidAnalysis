@@ -1,0 +1,527 @@
+---
+title: "Project Work"
+author: "Faizan Naseer, Chang Ma, and Lei Lim"
+date: "3/18/2022"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Description of the variables of the data
+The data we use concludes the cases of covid-19 since January 1st, 2020, and the last update is on March 25th, 2022.  There are total of 18 variables in the dataset which describes the demographic, geographic, and severity information for all confirmed and probable cases. 
+
+
+```{r, echo=FALSE}
+Variable<-c("id",
+"Assigned_ID",
+"Outbreak Associated",
+"Age Group",
+"Neighborhood Name",
+"FSA",
+"Source of Infection",
+"Classification",
+"Episode Date",
+"Reported Date",
+"Client Gender",
+"Outcome",
+"Currently Hospitalized",
+"Currently in ICU",
+"Currently Intubated",
+"Ever in ICU",
+"Ever Intubated",
+"Reported Date"
+)
+Description<-c(
+"Unique identifier of each row",
+"Unique ID assigned to cases by Toronto Public Health",
+"outbreaks of COVID-19 in Toronto ",
+"Age of the person who got COVID",
+"The name of one of the 140 geographically distinct areas in Toronto",
+"Forward sortation area (first three characters of postal code)",
+"The most likely way of how the COVID is acquired",
+"The identification of either the case is confirmed or probable",
+"A derived variable that best estimates when the disease was acquired",
+"The date which the case is reported",
+"Gender of the person",
+"Fatal/Resolved/Active",
+"Cases that are currently admitted to hospital",
+"Cases that currently admitted to the ICU",
+"Cases that were intubated related to their COIVD infection",
+"Currently that were admitted to ICU because of COVID infection",
+"Cases that were intubated because of COVID infection.",
+"The date of the case was reported"
+)
+library(kableExtra)
+df <- data.frame(Variable,Description)
+kable(df)
+
+```
+
+\
+
+## Background of the data
+
+The data is reported and managed by Public Health of Toronto, and it includes the cases that are sporadic, and outbreak associated. Furthermore, the data are extracted from the provincial Case & Contact Management System (CCM) which is a is a central data repository for COVID-19 case and contact management, and reporting in Ontario.
+
+\
+
+## Research Goal
+
+Our goal for this research project is to observe and analyze the data and find the pattern of how the number of COVID cases change as time goes further. In addition, we will predict what will happen to the growing rate of the number of cases in the future. We are going to accomplish our goal by using different static tests and techniques such as the t test.
+
+```{r, echo=FALSE}
+library(tidyverse)
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+```
+
+\
+
+## Tables
+
+
+### The number of COVID cases in each month 
+```{r, echo=FALSE}
+pop1 = pop %>% mutate(Reported.Date = str_sub(Reported.Date,start=1,end=7))
+data.frame(pop1 %>% group_by(Reported.Date)%>% summarise(number=n()))
+```
+In this table, we can see that the number of cases keeps increasing from January 2020 to May 2021, and then the number starts to decrease. However, the number of cases suddenly went up in January 2022, and then it went down again after that month.
+
+
+### The Number of COVID cases of each gender
+```{r, echo=FALSE}
+data.frame(pop %>% group_by(Client.Gender) %>% summarise(number=n())) 
+```
+From the table above, we notice that the number of female cases is more than the number of male cases, but the ratio of the two categories are very close together.
+/
+
+### The Number COVID cases of each age Group
+```{r, echo=FALSE}
+pop [pop == ""] <- NA
+data.frame(pop %>% group_by(Age.Group) %>% na.omit() %>% summarise(number=n()))
+```
+From this table, we can see that most of the cases are from the age group of 20 to 29.
+/
+
+### The number of COVID cases from each source of Infection
+```{r, echo=FALSE}
+pop [pop == ""] <- NA
+data.frame(pop %>% group_by(Source.of.Infection) %>% na.omit() %>% summarise(number=n()))
+```
+In this table, we can see that the source of most cases can not be determined, but we can still see that community inflection is the biggest source of infection from the knowing cases.
+
+```{r, echo=FALSE, eval=TRUE}
+library(tidyverse)
+library(ggplot2)
+
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+```
+\pagebreak
+## Graphs
+### Graph 1
+In this first graph, a bar graph will be plotted with the age group of the patients on the x-axis and the amount of fatal cases on the y-axis. Fatal cases in this situation means that the covid patient has died due to contracting the virus.
+```{r, echo=FALSE, eval=TRUE}
+pop = pop %>% mutate(Age = as.factor(pop$Age.Group))
+
+pop %>% group_by(Age) %>% summarize(n=n(), fatal = sum(Outcome == "FATAL")) %>%
+  ggplot(aes(Age, fatal)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(size = 5)) +
+  ggtitle("Fatal Covid Cases in Canada by Age Group") + 
+  xlab("Age Group of Patients") + 
+  ylab("Amount of Fatal Cases")
+```
+
+As it can be seen from the graph, it seems like fatal cases exponentially increases as the age group of the patients increase, right until the end, at 90 and older. However, I believe that is due to the much lower population of 90 and older people, leading to a much lesser amount of them contracting the virus, and thus lower amounts of fatal cases.
+
+### Graph 2
+If the graph of fatal cases were to be plotted in the same graph as total cases by age group, the following would show:
+
+```{r, echo=FALSE, eval=TRUE}
+fatal = pop %>% group_by(Age) %>% summarize(n = sum(Outcome == "FATAL"))
+total = pop %>% group_by(Age) %>% summarize(n = n())
+
+ggplot(NULL, aes(Age, n)) +
+  geom_bar(stat = 'identity', aes(fill = "Total"), data = total, alpha = 0.5) +
+  geom_bar(stat = 'identity', aes(fill = "Fatal"), data = fatal, alpha = 0.5) + 
+  theme(axis.text.x = element_text(size = 5)) +
+  ggtitle("Covid Cases in Canada by Age Group") + 
+  xlab("Age Group of Patients") + 
+  ylab("Amount of Cases") + 
+  guides(fill=guide_legend(title="Type of Case"))
+```
+
+As it can clearly be seen from the graph, there is much more covid patients in the age groups of 19 to 40, but the amounts of fatal cases are almost not visible. On the other hand, even when there are much less cases in the older ages, they are still more susceptible to having their covid case be fatal. This clearly shows that the older people are more likely to die from the virus due to their weaker immune system, while even when thousands of young people contract the virus the amount of fatal cases are almost negligible.
+
+### Graph 3
+In the final graph, the graph of total covid cases in Canada will be plotted against time. The graph will start at 2020 January when covid first surfaced and will end at March 2022, as it is the current time and no further data can be retrieved for the future.
+
+```{r, echo=FALSE, eval=TRUE}
+pop = pop %>% mutate(Date = as.factor(str_sub(pop$Reported.Date, start = 1, end = 7)))
+
+pop %>% group_by(Date) %>% summarize(n=n()) %>%
+  ggplot(aes(Date, n)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(size = 4)) +
+  ggtitle("Covid Cases in Canada by Time") + 
+  xlab("Reported Date of Covid Cases in Canada") + 
+  ylab("Amount of Total Cases")
+```
+
+From the graph, it can be seen that there really isn't a correlation in the data. There isn't really an increasing or decreasing trend in the reported covid cases in relation to time. However, it can be seen that there are periods of times when cases are very stable and low, such as from 2020-03 to 2020-09 and from 2021-06 to 2021-11, and much higher spikes of cases in the other months. However, this data is not conclusive enough for us to predict a trend and such.
+
+## Prop Testing
+
+In this prop test, we are testing whether the true proportion of covid-19 patients whose outcome is FATAL is 0.013 or not.
+
+Suppose $\pi$ is the true proportion. We are interested in:
+$H_O: \pi = 0.013$ vs $\pi \neq 0.013$
+
+```{r, echo=FALSE, eval=TRUE}
+d2 = pop %>% summarize( x= sum(Outcome == "FATAL"), n = n())
+
+prop.test(x = d2$x,
+          n = d2$n,
+          p = 0.013,
+          alternative="two.sided",
+          conf.level = 0.05)
+```
+Since the p-value is very very small, it shows that it is strongly against the null hypothesis, and therefore we have to reject it. Therefore the alternative hypothesis is right, where $\pi \neq 0.013$.
+
+
+## Bootstrapping
+In this bootstrapping model, we will sample data where the outcome of the virus is "FATAL", and replicate it 1000 times and plot out the histogram.
+
+```{r, echo=FALSE, eval=TRUE}
+set.seed(999)
+fatalmean = pop %>% summarize(fatalmean = mean(Outcome == "FATAL"))
+
+boot_function=function(){
+
+  d2 = pop[ sample(c(1:250000),size=1000,replace=T) , ] 
+
+  prop = d2 %>% summarize(prop = mean(Outcome == "FATAL")) 
+
+  return(prop[1,1])
+
+}
+
+boot_x_bar = replicate(1000,boot_function())
+hist(boot_x_bar)
+```
+
+This shows the histogram created from replicating the boot function. It can be seen that the mid point is around 0.014.
+
+To find the 95th percentile, the following code has to run:
+```{r, echo=FALSE, eval=TRUE}
+quantile(boot_x_bar, c(0.025,0.975))
+```
+
+As it can be seen, these are the values where 95% of the times, the percentages will fall in between.
+
+\pagebreak
+## Regression Analysis
+
+To predict how the COVID-19 pandemic will affect Toronto in the future using regression, we can plot a graph of how the overall number of cases have fluctuated in the last 18 months, as the months have passed by. Subsequently, an attempt at mapping a linear model to the graph can also be used, to help aid our predictions. 
+
+### Linear Model 1 Summary
+
+```{r, echo = FALSE}
+library(tidyverse)
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+pop = pop %>% mutate(Date = as.factor(str_sub(pop$Reported.Date, start = 1, end = 7)))
+pop_dates = pop %>% group_by(Date) %>% summarise(n = n())
+x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+y = tail(pop_dates$n, 18)
+
+plot(x, y, main = "Scatter Plot (Number Of Cases In The Last 18 Months)", ylab = "Number of Cases", xlab = "Month", cex.main = 0.75)
+
+m = lm(y~x)
+summary(m)
+```
+
+### Interpretation Of Regression Parameters
+
+$\beta_1$ according to the linear model created is 13476.5 - this is the number of cases at the start of the 1st month.
+
+$\beta_2$ according to the linear model created is 212.9 - this means that the number of cases increase by approximately 213 cases, as each month passes by.
+
+For both these parameters, however, the p-value is greater than 0.005 and thus the null hypothesis is mostly accepted ($\beta_1$ and $\beta_2$ are equal to 0) - this is because of the fact that there is no clear, moderate or strong correlation between the last  18 months and the number of cases, deeming the linear model inaccurate.
+
+To gain a better linear model on the number of cases and how they change as the time passes by, the number of fatal cases were then looked into.
+
+### Linear Model 2 Summary
+```{r, echo = FALSE}
+
+pop_dates = pop %>% filter(Outcome == "FATAL") %>% group_by(Date) %>% summarise(n = n())
+x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+y = tail(pop_dates$n, 18)
+
+plot(x, y, main= "Scatter Plot (Number Of Fatal Cases In The Last 18 Months)", ylab = "Number of Fatal Cases", xlab = "Month", cex.main = 0.75)
+
+m = lm(y~x)
+summary(m)
+```
+
+### Interpretation Of Regression Parameters
+
+This time, $\beta_1$ according to the linear model is 297.431 - this is the number of fatal cases at the start of the first month.
+
+$\beta_2$ according to the linear model is -14.8 - this means the number of fatal cases decrease by approximately 15 cases, as each month passes by.
+
+For both these parameters, the p-value is less than 0.005 and thus the null hypothesis is rejected as well ($\beta_1$ and $\beta_2$ are not equal to 0).
+
+Additionally, the least square regression line predicts that the number of fatal cases will equal 0 after approximately two months. 
+297.431 -14.8x = 0 => x equals approximately 20 => 20 - 18 = 2
+
+### Linear Regression Model Plots
+4 Types:
+```{r, echo = FALSE}
+plot(m)
+```
+
+\pagebreak
+#### Mean Squared Error of the Linear Model
+
+```{r, echo = FALSE}
+y.hat = predict(m)
+mse = mean((y-y.hat)^2)
+mse
+```
+
+### Cross Validation
+
+The data can be split up into a 60% - 40% proportion where the model is trained and built based on the 60% proportion, and is then externally validated by checking through the 40% proportion.
+
+#### Training MSE:
+```{r, echo = FALSE}
+pop_dates = pop_dates[-c(1:7), ]
+pop_dates = pop_dates %>% mutate(group_ind = sample(c("train", "test"),
+                                                    size = nrow(pop_dates),
+                                                    prob = c(0.6, 0.4),
+                                                    replace = T))
+pop_dates = pop_dates %>% mutate(x = x)
+m = lm(n~x, data = pop_dates %>% filter(group_ind == "train"))
+
+y.hat = predict(m)
+mean((pop_dates$n[pop_dates$group_ind == "train"] - y.hat)^2)
+```
+
+#### Test MSE:
+```{r, echo = FALSE}
+y.hat = predict(m, newdata = pop_dates %>% filter(group_ind == "test"))
+mean((pop_dates$n[pop_dates$group_ind == "test"] - y.hat)^2)
+```
+
+As the mean squared error value is quite far from 0, the linear model is still not reliable to an extent - this has been checked through cross-validating the data values.
+
+## Final Summary
+
+A data set consisting of COVID-19 information in Toronto was used to thoroughly investigate and analyze how the pandemic has affected different age groups, and how it has changed as the months have passed by. A set of tables were created on the sources of infection, and on how the number of cases fluctuated between different time spans - an increase through Jan 2020 to May 2021, then a decrease and then a sudden spike and fall through Jan 2022.
+
+Graphs related to the relation between age groups and fatality, cases and time, etc. then followed, portraying a relation between older age groups and fatal cases. Proportion tests were also utilized to find the proportion of fatal cases overall, using p-values and null hypotheses accordingly.
+
+Finally, a linear regression model was applied to several aspects of the data set, e.g. overall cases, fatal cases, etc. to help predict the decline of COVID-19 cases in Toronto, where the accuracy, reliability and suitability of the models were gauged using p-values and cross-validation.
+
+\pagebreak
+## Appendix (Code)
+```{r, echo = TRUE, eval = FALSE}
+Variable<-c("id",
+"Assigned_ID",
+"Outbreak Associated",
+"Age Group",
+"Neighborhood Name",
+"FSA",
+"Source of Infection",
+"Classification",
+"Episode Date",
+"Reported Date",
+"Client Gender",
+"Outcome",
+"Currently Hospitalized",
+"Currently in ICU",
+"Currently Intubated",
+"Ever in ICU",
+"Ever Intubated",
+"Reported Date"
+)
+Description<-c(
+"Unique identifier of each row",
+"Unique ID assigned to cases by Toronto Public Health",
+"outbreaks of COVID-19 in Toronto ",
+"Age of the person who got COVID",
+"The name of one of the 140 geographically distinct areas in Toronto",
+"Forward sortation area (first three characters of postal code)",
+"The most likely way of how the COVID is acquired",
+"The identification of either the case is confirmed or probable",
+"A derived variable that best estimates when the disease was acquired",
+"The date which the case is reported",
+"Gender of the person",
+"Fatal/Resolved/Active",
+"Cases that are currently admitted to hospital",
+"Cases that currently admitted to the ICU",
+"Cases that were intubated related to their COIVD infection",
+"Currently that were admitted to ICU because of COVID infection",
+"Cases that were intubated because of COVID infection.",
+"The date of the case was reported"
+)
+library(kableExtra)
+df <- data.frame(Variable,Description)
+kable(df)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+library(tidyverse)
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop1 = pop %>% mutate(Reported.Date = str_sub(Reported.Date,start=1,end=7))
+data.frame(pop1 %>% group_by(Reported.Date)%>% summarise(number=n()))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+data.frame(pop %>% group_by(Client.Gender) %>% summarise(number=n())) 
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop [pop == ""] <- NA
+data.frame(pop %>% group_by(Age.Group) %>% na.omit() %>% summarise(number=n()))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop [pop == ""] <- NA
+data.frame(pop %>% group_by(Source.of.Infection) %>% na.omit() %>% summarise(number=n()))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+library(tidyverse)
+library(ggplot2)
+
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop = pop %>% mutate(Age = as.factor(pop$Age.Group))
+
+pop %>% group_by(Age) %>% summarize(n=n(), fatal = sum(Outcome == "FATAL")) %>%
+  ggplot(aes(Age, fatal)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(size = 5)) +
+  ggtitle("Fatal Covid Cases in Canada by Age Group") + 
+  xlab("Age Group of Patients") + 
+  ylab("Amount of Fatal Cases")
+```
+
+```{r, echo = TRUE, eval = FALSE}
+fatal = pop %>% group_by(Age) %>% summarize(n = sum(Outcome == "FATAL"))
+total = pop %>% group_by(Age) %>% summarize(n = n())
+
+ggplot(NULL, aes(Age, n)) +
+  geom_bar(stat = 'identity', aes(fill = "Total"), data = total, alpha = 0.5) +
+  geom_bar(stat = 'identity', aes(fill = "Fatal"), data = fatal, alpha = 0.5) + 
+  theme(axis.text.x = element_text(size = 5)) +
+  ggtitle("Covid Cases in Canada by Age Group") + 
+  xlab("Age Group of Patients") + 
+  ylab("Amount of Cases") + 
+  guides(fill=guide_legend(title="Type of Case"))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop = pop %>% mutate(Date = as.factor(str_sub(pop$Reported.Date, start = 1, end = 7)))
+
+pop %>% group_by(Date) %>% summarize(n=n()) %>%
+  ggplot(aes(Date, n)) +
+  geom_bar(stat = "identity") + 
+  theme(axis.text.x = element_text(size = 4)) +
+  ggtitle("Covid Cases in Canada by Time") + 
+  xlab("Reported Date of Covid Cases in Canada") + 
+  ylab("Amount of Total Cases")
+```
+
+```{r, echo = TRUE, eval = FALSE}
+d2 = pop %>% summarize( x= sum(Outcome == "FATAL"), n = n())
+
+prop.test(x = d2$x,
+          n = d2$n,
+          p = 0.013,
+          alternative="two.sided",
+          conf.level = 0.05)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+set.seed(999)
+fatalmean = pop %>% summarize(fatalmean = mean(Outcome == "FATAL"))
+
+boot_function=function(){
+
+  d2 = pop[ sample(c(1:250000),size=1000,replace=T) , ] 
+
+  prop = d2 %>% summarize(prop = mean(Outcome == "FATAL")) 
+
+  return(prop[1,1])
+
+}
+
+boot_x_bar = replicate(1000,boot_function())
+hist(boot_x_bar)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+quantile(boot_x_bar, c(0.025,0.975))
+```
+
+```{r, echo = TRUE, eval = FALSE}
+library(tidyverse)
+pop <- read.csv("/Users/faizannaseer/Downloads/COVID19 cases.csv")
+pop = pop %>% mutate(Date = as.factor(str_sub(pop$Reported.Date, start = 1, end = 7)))
+pop_dates = pop %>% group_by(Date) %>% summarise(n = n())
+x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+y = tail(pop_dates$n, 18)
+
+plot(x, y)
+
+m = lm(y~x)
+summary(m)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+
+pop_dates = pop %>% filter(Outcome == "FATAL") %>% group_by(Date) %>% summarise(n = n())
+x = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18)
+y = tail(pop_dates$n, 18)
+
+plot(x, y)
+
+m = lm(y~x)
+summary(m)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+plot(m)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+y.hat = predict(m)
+mse = mean((y-y.hat)^2)
+mse
+```
+
+```{r, echo = TRUE, eval = FALSE}
+pop_dates = pop_dates[-c(1:7), ]
+pop_dates = pop_dates %>% mutate(group_ind = sample(c("train", "test"),
+                                                    size = nrow(pop_dates),
+                                                    prob = c(0.6, 0.4),
+                                                    replace = T))
+pop_dates = pop_dates %>% mutate(x = x)
+m = lm(n~x, data = pop_dates %>% filter(group_ind == "train"))
+
+y.hat = predict(m)
+mean((pop_dates$n[pop_dates$group_ind == "train"] - y.hat)^2)
+```
+
+```{r, echo = TRUE, eval = FALSE}
+y.hat = predict(m, newdata = pop_dates %>% filter(group_ind == "test"))
+mean((pop_dates$n[pop_dates$group_ind == "test"] - y.hat)^2)
+```
