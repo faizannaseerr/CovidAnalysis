@@ -12,3 +12,7 @@ Analysed trends and hypotheses on a COVID-19 dataset done in a group of three us
 3. The future of covid cases in toronto is predicted through hypothesis testing, based on a linear regression model (*Most Individual Work Here*)
 4. A summary of the findings, as well as a final conclusion (*Most Individual Work Here*)
 5. Appendix with R code snippets
+
+## Viewing The Report
+
+- The report can be viewed in PDF form, by donwloading the ProjectWork12.pdf file
