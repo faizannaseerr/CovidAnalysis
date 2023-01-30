@@ -15,4 +15,4 @@ Analysed trends and hypotheses on a COVID-19 dataset done in a group of three us
 
 ## Viewing The Report
 
-- The report can be viewed in PDF form, by donwloading the [Project Work.pdf]() file
+- The report can be viewed in PDF form, by donwloading the [Project Work.pdf](https://github.com/faizannaseerr/CovidAnalysis/blob/main/Project%20Work.pdf) file
